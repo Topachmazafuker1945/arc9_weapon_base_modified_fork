@@ -36,7 +36,8 @@ function SWEP:ToggleUBGL(on)
 
     if on == self:GetUBGL() then return end
 
-    if self:GetNeedsCycle() then return end
+    if self:RunHook("HookP_BlockUBGL") then return end
+    -- if self:GetNeedsCycle() then return end
     if self:StillWaiting() then return end
 
 	if self.UBGLCancelAnim then self:PlayAnimation("enter_sights" or "idle", 1, true) end
