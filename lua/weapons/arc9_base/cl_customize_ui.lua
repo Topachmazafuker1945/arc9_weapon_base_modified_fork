@@ -376,13 +376,17 @@ local lightoffsound = "arc9/newui/ui_light_off.ogg"
 local tabsound = "arc9/newui/uimouse_click_tab.ogg"
 
 function SWEP:CreateCustomizeHUD()
-    if !IsValid(self) then return end
+    if !IsValid(self) or IsValid(self.CustomizeHUD) then return end
+
+    self.RemovingCustHud = nil
 
     local bg = vgui.Create("DPanel")
 
     self.CustomizeHUD = bg
 
-    gui.EnableScreenClicker(true)
+    -- Let the panel own mouse focus instead of changing the global screen clicker.
+    bg:MakePopup()
+    bg:SetKeyboardInputEnabled(false)
 
     surface.PlaySound("arc9/newui/ui_open.ogg") -- w
 
@@ -393,8 +397,21 @@ function SWEP:CreateCustomizeHUD()
     bg:SetSize(ScrW(), ScrH())
 
     bg.OnRemove = function(self2)
-        if !IsValid(self) then return end
-        -- self:SavePreset()
+        if !IsValid(self) or self.CustomizeHUD != self2 then return end
+        self.CustomizeHUD = nil
+        self.RemovingCustHud = nil
+    end
+
+    -- Cleanup must also run when HUD painting is suppressed or the weapon changes.
+    bg.Think = function(self2)
+        if !IsValid(self) or !IsValid(LocalPlayer()) or LocalPlayer():GetActiveWeapon() != self then
+            self2:Remove()
+            return
+        end
+
+        if !self:GetCustomize() then
+            self:RemoveCustomizeHUD()
+        end
     end
 
     bg.OnMouseWheeled = function(self2, sd)
@@ -417,7 +434,6 @@ function SWEP:CreateCustomizeHUD()
     bg.Paint = function(self2, w, h)
         if !IsValid(self) or LocalPlayer():GetActiveWeapon() != self then
             self2:Remove()
-            gui.EnableScreenClicker(false)
             return
         end
 
@@ -876,6 +892,12 @@ function SWEP:CreateCustomizeHUD()
                         atttxt = ARC9:GetPhraseForAtt(ms_slot.Installed, "CompactName")
                         atttxt = atttxt or ARC9:GetPhraseForAtt(ms_slot.Installed, "PrintName") or ""
 
+						if ARC9:UseTrueNames() then
+							atttxt = ( ARC9:GetPhraseForAtt(ms_slot.Installed, "TrueCompactName") or ARC9:GetPhraseForAtt(ms_slot.Installed, "CompactName") )
+							or ( ARC9:GetPhraseForAtt(ms_slot.Installed, "TrueName") or ARC9:GetPhraseForAtt(ms_slot.Installed, "PrintName") )
+							or ""
+						end
+
                         surface.SetMaterial(atttbl.Icon or mat_3dslot)
                         surface.SetDrawColor(ARC9.GetHUDColor("fg"))
                         render.SuppressEngineLighting(true)
@@ -1212,7 +1234,6 @@ function SWEP:CreateCustomizeHUD()
         if !GetConVar("arc9_cust_hints"):GetBool() then return end
         if !IsValid(self) then
             self2:Remove()
-            gui.EnableScreenClicker(false)
             return
         end
 
@@ -1308,9 +1329,15 @@ function SWEP:CreateCustomizeHUD()
 end
 
 function SWEP:RemoveCustomizeHUD()
-    if self.RemovingCustHud then return end
-
     local bg = self.CustomizeHUD
+
+    if !IsValid(bg) then
+        self.CustomizeHUD = nil
+        self.RemovingCustHud = nil
+        return
+    end
+
+    if self.RemovingCustHud then return end
 
     local scrh = ScrH()
     local scrw = ScrW()
@@ -1319,6 +1346,10 @@ function SWEP:RemoveCustomizeHUD()
 
     if self.CustomizeHUD then
         self.RemovingCustHud = true
+        -- Release input immediately, while the closing animation is still visible.
+        bg:SetMouseInputEnabled(false)
+        bg:SetKeyboardInputEnabled(false)
+        bg:MouseCapture(false)
         if bg.nameplate then bg.nameplate:MoveTo(0, -ARC9ScreenScale(64), 0.7, 0, 0.05, nil) bg.nameplate:AlphaTo(0, 0.2, 0) end
         if bg.topleft_panel then bg.topleft_panel:MoveTo(-ARC9ScreenScale(70) + deadzonexx, -ARC9ScreenScale(40), 0.7, 0, 0.05, nil) bg.topleft_panel:AlphaTo(0, 0.2, 0) end
         if bg.topright_panel then bg.topright_panel:MoveTo(scrw - deadzonexx, -ARC9ScreenScale(40), 0.7, 0, 0.05, nil) bg.topright_panel:AlphaTo(0, 0.2, 0) end
@@ -1328,15 +1359,11 @@ function SWEP:RemoveCustomizeHUD()
 
         self:ClosePresetMenu()
 
-        gui.EnableScreenClicker(false)
-
         surface.PlaySound(closesound)
 
         timer.Simple(0.1, function()
-            if !IsValid(self) then return end
-            self.CustomizeHUD:Remove()
-            self.CustomizeHUD = nil
-            self.RemovingCustHud = nil
+            -- A weapon may have been removed or a new HUD created in the meantime.
+            if IsValid(bg) then bg:Remove() end
         end)
     end
 end
@@ -1345,7 +1372,8 @@ function SWEP:DrawCustomizeHUD()
     local customize = self:GetCustomize()
 
     if self.CustomizeHUD and !IsValid(self.CustomizeHUD) then
-        self:RemoveCustomizeHUD()
+        self.CustomizeHUD = nil
+        self.RemovingCustHud = nil
     end
 
     if customize and !self.CustomizeHUD and !self.RemovingCustHud then
@@ -1450,7 +1478,7 @@ function SWEP:CreateHUD_RHP()
 
     local topleft_settings = vgui.Create("ARC9TopButton", topleft_panel)
     topleft_settings:SetPos(ARC9ScreenScale(19), ARC9ScreenScale(19))
-    topleft_settings:SetNotif(ARC9.BadPerfromanceSettings())
+    topleft_settings:SetNotif(ARC9.BadMulticoreAnd32())
     topleft_settings.DoClick = function(self2)
         surface.PlaySound(popupsound)
         ARC9_OpenSettings()
