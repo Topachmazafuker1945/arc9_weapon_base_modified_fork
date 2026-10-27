@@ -670,7 +670,7 @@ function SWEP:CreateHUD_AttInfo()
                 mode_toggle:SetPos(descscroller:GetWide() / 2-(ARC9ScreenScale(24) + tw) / 2, ARC9ScreenScale(50))
                 mode_toggle:SetSize(ARC9ScreenScale(21) + tw, ARC9ScreenScale(21 * 0.75))
                 mode_toggle:SetButtonText(curmode, "ARC9_12")
-                if atttbl.ToggleStats[slot.ToggleNum].ToggleIcon then
+                if atttbl.ToggleStats[slot.ToggleNum] and atttbl.ToggleStats[slot.ToggleNum].ToggleIcon then
                     mode_toggle:SetIcon(atttbl.ToggleStats[slot.ToggleNum].ToggleIcon)
                 end
             else
