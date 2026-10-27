@@ -41,6 +41,8 @@ function SWEP:Reload()
     end
 
     if !self:CanReload() then return end
+    
+    if self:RunHook("HookP_BlockReload") then return end
 
     local clip = self:Clip1()
     local ammo = self:Ammo1()
