@@ -117,13 +117,13 @@ function SWEP:Reload()
     local reloadtimemult = self:GetProcessedValue("ReloadTime")
 
     local entry = self:GetAnimationEntry(self:TranslateAnimation(anim))
-    local t, minprogress = self:PlayAnimation(anim, reloadtimemult, true, dont_idle)
+    local t = self:PlayAnimation(anim, reloadtimemult, true, dont_idle)
 
     if !shouldshotgunreload then
-        local minprogress = entry.RefillProgress or minprogress or 1
+        local minprogress = entry.RefillProgress or entry.MinProgress or 1
 
         if !entry.RestoreAmmo then
-            self:Refill( CurTime() + (t * minprogress), math.Round(self:GetValue(getUBGL and "UBGLClipSize" or "ClipSize")) )
+            self:SetReloadTimer( CurTime() + (t * minprogress), math.Round(self:GetValue(getUBGL and "UBGLClipSize" or "ClipSize")) )
         end
 
         local newcliptime = entry.MagSwapTime or 0.5
@@ -461,16 +461,7 @@ function SWEP:EndReload()
             end_clipsize = end_clipsize + attempt_to_restore
 
             local reloadtime = self:GetProcessedValue("ReloadTime", nil, 1)
-            local entry = self:GetAnimationEntry(self:TranslateAnimation(anim))
-
-            -- check if the animation has a restore ammo value
-            -- use it instead of the default attempt_to_restore value
-            --why was this check missing
-            if entry and entry.RestoreAmmo then
-                attempt_to_restore = entry.RestoreAmmo
-                end_clipsize = end_clipsize + attempt_to_restore
-            end
-
+            local entry = self:GetAnimationEntry(anim)
             local t, minprogress = self:PlayAnimation(anim, reloadtime, true, true)
             minprogress = entry and entry.RefillProgress or minprogress
             local magswaptime = entry and entry.MagSwapTime or 0
@@ -482,7 +473,10 @@ function SWEP:EndReload()
                 end)
             end
 
-            self:Refill(CurTime() + (t * minprogress), attempt_to_restore)
+            self:SetTimer(minprogress * t, function()
+                self:RestoreClip(attempt_to_restore)
+            end)
+
             self:SetReloadFinishTime(CurTime() + t)
         end
     else
