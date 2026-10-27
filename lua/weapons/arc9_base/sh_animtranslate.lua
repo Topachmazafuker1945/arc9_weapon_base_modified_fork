@@ -41,7 +41,7 @@ function SWEP:TranslateAnimation(seq)
         end
 
         local reloading = self:GetReloadFinishTime() > CurTime()
-        local empty = !self:GetProcessedValue("SuppressEmptySuffix", true) and (self:Clip1() == 0 or (reloading and self:GetEmptyReload()))
+        local empty = !self:GetProcessedValue("SuppressEmptySuffix", true) and (self:GetLoadedClip() == 0 or (reloading and self:GetEmptyReload()))
 
         if empty and self:HasAnimation(seq .. "_empty") then
             seq = seq .. "_empty"
