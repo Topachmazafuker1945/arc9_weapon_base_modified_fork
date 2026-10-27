@@ -41,12 +41,7 @@ local afterscalefunc = function(self2, self3, settingspanel)
     if IsValid(LocalPlayer()) then -- uncust the gun
         local wep = LocalPlayer():GetActiveWeapon()
         if IsValid(wep) and wep.ARC9 then
-            if wep.CustomizeHUD then
-                wep:SetCustomize(false)
-                net.Start("ARC9_togglecustomize")
-                net.WriteBool(false)
-                net.SendToServer()
-            end
+            wep:ToggleCustomize(false)
         end
     end
 
@@ -63,12 +58,7 @@ local aftervmfunc = function(self2, self3, settingspanel)
     if IsValid(LocalPlayer()) then -- uncust the gun
         local wep = LocalPlayer():GetActiveWeapon()
         if IsValid(wep) and wep.ARC9 then
-            if wep.CustomizeHUD then
-                wep:SetCustomize(false)
-                net.Start("ARC9_togglecustomize")
-                net.WriteBool(false)
-                net.SendToServer()
-            end
+            wep:ToggleCustomize(false)
         end
     end
 end

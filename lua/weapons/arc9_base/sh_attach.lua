@@ -225,10 +225,6 @@ function SWEP:ThinkCustomize()
     local owner = entityGetOwner(self)
     local swepDt = self.dt
 
-    if entityKeyPressed(owner, ARC9.IN_CUSTOMIZE) and !entityKeyDown(owner, IN_USE) and !swepDt.GrenadePrimed then
-        self:ToggleCustomize(!swepDt.Customize)
-    end
-
     if sp or (CLIENT and IsFirstTimePredicted()) then
         local cd = self.CustomizeDelta
         if swepDt.Customize then
@@ -244,19 +240,25 @@ function SWEP:ThinkCustomize()
 end
 
 function SWEP:ToggleCustomize(on)
-    if on == self:GetCustomize() then return end
-    if self.NotAWeapon then return end
+    if self.dt.GrenadePrimed or entityKeyDown(entityGetOwner(self), IN_USE) then on = false end -- no cust in grenade or with use held down
 
-    self:SetCustomize(on)
+    if CLIENT then
+        net.Start("ARC9_togglecustomize")
+        net.WriteBool(on)
+        net.SendToServer()
+    else
+        if on == self:GetCustomize() then return end
+        if self.NotAWeapon then return end
 
-    self:SetShouldHoldType()
+        self:SetCustomize(on)
+        self:SetShouldHoldType()
+        self:SetInSights(false)
 
-    self:SetInSights(false)
-
-    if !on then
-        if self:HasAnimation("postcustomize") then
-            self:CancelReload()
-            self:PlayAnimation("postcustomize", 1, true)
+        if !on then
+            if self:HasAnimation("postcustomize") then
+                self:CancelReload()
+                self:PlayAnimation("postcustomize", 1, true)
+            end
         end
     end
 end

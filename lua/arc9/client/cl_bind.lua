@@ -9,30 +9,18 @@ hook.Add("PlayerBindPress", "ARC9_Binds", function(ply, bind, pressed, code)
 
     if !wpn or !IsValid(wpn) or !wpn.ARC9 then return end
 
+    if !pressed then return end
+
     if bind == "+menu_context" then
         if !wpn:GetInSights() and !LocalPlayer():KeyDown(IN_USE) then
-            -- if wpn:GetCustomize() then
-            --     surface.PlaySound("arc9/newui/ui_close.ogg")
-            --     net.Start("ARC9_togglecustomize")
-            --     net.WriteBool(false)
-            --     net.SendToServer()
-            --     -- wpn:DoIconCapture()
-            -- else
-            --     surface.PlaySound("arc9/newui/ui_open.ogg")
-            --     net.Start("ARC9_togglecustomize")
-            --     net.WriteBool(true)
-            --     net.SendToServer()
-            -- end
 
-            ARC9.KeyPressed_Menu = pressed
+            wpn:ToggleCustomize(!wpn:GetCustomize())
 
             return true
         elseif wpn:GetInSights() and !LocalPlayer():KeyDown(IN_USE) then
             return true
         end
     end
-
-    if !pressed then return end
 
     local plususe = ((ARC9.ControllerMode() and bind == "+zoom" and !LocalPlayer():KeyDown(IN_ZOOM)) -- Gamepad
                     or (!ARC9.ControllerMode() and bind == "+use" and !LocalPlayer():KeyDown(IN_USE)))

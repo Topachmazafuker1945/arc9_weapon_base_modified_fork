@@ -34,9 +34,9 @@ hook.Add("CreateMove", "ARC9_CreateMove", function(cmd)
         end
     end
 
-    if ARC9.KeyPressed_Menu then
-        cmd:AddKey(IN_WEAPON1)
-    end
+    -- if ARC9.KeyPressed_Menu then
+    --     cmd:AddKey(IN_WEAPON1)
+    -- end
 
     if ARC9.KeyPressed_Melee then
         cmd:AddKey(ARC9.IN_MELEE)

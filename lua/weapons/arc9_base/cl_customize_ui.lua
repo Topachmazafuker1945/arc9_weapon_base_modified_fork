@@ -1535,10 +1535,7 @@ function SWEP:CreateHUD_RHP()
     topright_close:SetIcon(Material("arc9/ui/close.png", "mips smooth"))
     topright_close.DoClick = function(self2)
         surface.PlaySound(clicksound)
-        self:SetCustomize(false)
-        net.Start("ARC9_togglecustomize")
-        net.WriteBool(false)
-        net.SendToServer()
+        self:ToggleCustomize(false)
     end
 
     topright_close.Think = function(self2) if !IsValid(self) then return end inspectalpha(self2, self.CustomizeHUD.topright_panel, 8) end
