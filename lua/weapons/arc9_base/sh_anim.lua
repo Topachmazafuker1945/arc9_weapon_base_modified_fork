@@ -129,7 +129,7 @@ function SWEP:PlayAnimation(anim, mult, lock, no_idle, noproxy, notranslate)
 
 
         if animation.RestoreAmmo then
-            self:Refill(CurTime() + (time * mult * minprogress), animation.RestoreAmmo)
+            self:Refill(CurTime() + (time * mult * minprogress * 0.9), animation.RestoreAmmo)
         end
 
         if animation.IKTimeLine then

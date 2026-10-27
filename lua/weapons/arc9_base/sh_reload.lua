@@ -123,7 +123,7 @@ function SWEP:Reload()
         local minprogress = entry.RefillProgress or entry.MinProgress or 1
 
         if !entry.RestoreAmmo then
-            self:SetReloadTimer( CurTime() + (t * minprogress), math.Round(self:GetValue(getUBGL and "UBGLClipSize" or "ClipSize")) )
+            self:Refill( CurTime() + (t * minprogress), math.Round(self:GetValue(getUBGL and "UBGLClipSize" or "ClipSize")) )
         end
 
         local newcliptime = entry.MagSwapTime or 0.5
@@ -473,7 +473,7 @@ function SWEP:EndReload()
                 end)
             end
 
-            self:SetTimer(minprogress * t, function()
+            self:SetTimer(minprogress * t * 0.9, function()
                 self:RestoreClip(attempt_to_restore)
             end)
 
